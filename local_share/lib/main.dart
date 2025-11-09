@@ -17,7 +17,6 @@ class MyApp extends HookConsumerWidget {
     final notifier = ref.read(nSDManagerProvider.notifier);
     final discoveries = ref.watch(nSDManagerProvider.select( (selector) => selector.discoveries ));
     final registrations = ref.watch(nSDManagerProvider.select((selector) => selector.registrations));
-
     useEffect(() {
       enableLogging(LogTopic.calls);
       return null;
@@ -100,6 +99,7 @@ class DiscoveryWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final discoveries = ref.watch(nSDManagerProvider.select( (selector) => selector.discoveries ));
     final discovery = discoveries.firstWhere((discovery) => discovery.id == id);
+    ref.watch(nSDManagerProvider).updateChecker;
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Column(

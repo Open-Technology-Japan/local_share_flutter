@@ -4,13 +4,13 @@ import 'dart:typed_data';
 import 'package:local_share/model/nsd_manager_state.dart';
 import 'package:nsd/nsd.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'nsd_manager_provider.g.dart';
 
 // Provider for storing measurements
 @riverpod
 class NSDManager extends _$NSDManager {
-  final int port = 56360;
   final String serviceTypeDiscover = '_http._tcp';
   final String serviceTypeRegister = '_http._tcp';
   final utf8encoder = Utf8Encoder();
@@ -22,6 +22,10 @@ class NSDManager extends _$NSDManager {
 
   Future<void> addDiscovery() async {
     final discovery = await startDiscovery(serviceTypeDiscover);
+    discovery.addServiceListener((service, status) {
+      print("port: ${service.port} \n host: ${service.host}");
+      state = state.copyWith(updateChecker: Uuid().v4());
+    });
     List<Discovery> newDiscoveries = [...state.discoveries];
     newDiscoveries.add(discovery);
     state = state.copyWith(discoveries: newDiscoveries);
@@ -38,12 +42,13 @@ class NSDManager extends _$NSDManager {
     final service = Service(
         name: 'Some Service',
         type: serviceTypeRegister,
-        port: port,
+        port: state.port,
         txt: _createTxt());
     final registration = await register(service);
     final newRegistrations = [...state.registrations];
     newRegistrations.add(registration);
-    state = state.copyWith(registrations: newRegistrations);
+    final newPort = state.port + 1;
+    state = state.copyWith(port: newPort, registrations: newRegistrations);
   }
 
   Future<void> dismissRegistration(Registration registration) async {
